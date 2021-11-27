@@ -2,7 +2,7 @@
 
 ## Description
 
-WIP
+This package is designed for [dicefont](https://github.com/fponticelli/dicefont) and [Fate Core Glyphs](http://www.faterpg.com/wp-content/uploads/2013/06/Fate-Core-Font.ttf_.zip). Make sure you have them installed.
 
 ## License
 
