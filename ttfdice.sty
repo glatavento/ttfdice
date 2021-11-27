@@ -1,0 +1,275 @@
+\ProvidesExplPackage {ttfdice} {2021/11/27} {0.1.0}
+{ A tiny package for displaying TRPG dice. }
+
+\RequirePackage { xparse }
+\RequirePackage { fontspec }
+
+\tl_new:N \l__ttfdice_d_output_tl
+\tl_new:N \l__ttfdice_dice_charlist_tl
+
+\dim_new:N \g_ttfdice_dice_raise_dim
+\dim_new:N \g_ttfdice_fate_glyph_raise_dim
+\dim_new:N \g_ttfdice_dice_sep_dim
+\dim_new:N \g_ttfdice_dice_big_sep_dim
+
+\dim_set:Nn \g_ttfdice_dice_raise_dim       { 0pt }
+\dim_set:Nn \g_ttfdice_fate_glyph_raise_dim { 0pt }
+\dim_set:Nn \g_ttfdice_dice_sep_dim         { 1pt }
+\dim_set:Nn \g_ttfdice_dice_big_sep_dim     { 2pt }
+
+\msg_new:nnn { ttfdice } { invalid-dice-number }
+{ ‘#2’~ is~ not~ a~ valid~ d#1~ number. }
+
+\msg_new:nnn { ttfdice } { invalid-fudge-result }
+{ ‘#2’~ is~ not~ a~ valid~ fudge~ dice~ result. }
+
+\msg_new:nnn { ttfdice } { unsupported-number }
+{ ‘#1’~ in~ this~ kind~ of~ dice~ is~ not~ supported. }
+
+\msg_new:nnn { ttfdice } { unsupported-dice }
+{ The~ #1-sided~ dice~ is~ not~ supported. }
+
+\msg_new:nnn { ttfdice } { api-reserved }
+{ This~ api~ is~ reserved~ for~ future~ applications.\\
+  Its~ functionality~ is~ subject~ to~ change. }
+
+\str_const:Nn \c__ttfdice_fate_glyph_range_str { +-.1234567890ABCDOabcdo }
+
+\seq_const_from_clist:Nn \c__ttfdice_supported_dice_seq { 2, 3, 4, 6, 8, 10, 12, 20, 100 }
+\seq_const_from_clist:Nn \c__ttfdice_empty_dice_mark_seq { empty, null, blank }
+
+% First item is the char point of zero dice
+% (for dices other than d10, it's empty).
+% Last item is the char point of empty dice.
+% DX=Y's index = Y + 1.
+\intarray_const_from_clist:Nn \c__ttfdice_dii_intarray
+{ "0F196, "0F117, "0F118, "0F196 }
+\intarray_const_from_clist:Nn \c__ttfdice_diii_intarray
+{ "0F193, "0F131, "0F132, "0F133, "0F193 }
+\intarray_const_from_clist:Nn \c__ttfdice_div_intarray
+{ "0F198, "0F12D, "0F12E, "0F12F, "0F130, "0F198 }
+\intarray_const_from_clist:Nn \c__ttfdice_dvi_intarray
+{ "0F193, "0F131, "0F132, "0F133, "0F134, "0F135, "0F136, "0F193 }
+\intarray_const_from_clist:Nn \c__ttfdice_dviii_intarray
+{ "0F19A, "0F137, "0F138, "0F139, "0F13A, "0F13B, "0F13C, "0F13D,
+  "0F13E, "0F19A }
+\intarray_const_from_clist:Nn \c__ttfdice_dx_intarray
+{ "0F100, "0F101, "0F103, "0F104, "0F105, "0F106, "0F107, "0F108,
+  "0F109, "0F10A, "0F102, "0F194 }
+\intarray_const_from_clist:Nn \c__ttfdice_dxii_intarray
+{ "0F195, "0F10B, "0F10F, "0F110, "0F111, "0F112, "0F113, "0F114,
+  "0F115, "0F116, "0F10C, "0F10D, "0F10E, "0F195 }
+\intarray_const_from_clist:Nn \c__ttfdice_dxx_intarray
+{ "0F197, "0F119, "0F124, "0F126, "0F127, "0F128, "0F129, "0F12A,
+  "0F12B, "0F12C, "0F11A, "0F11B, "0F11C, "0F11D, "0F11E, "0F11F,
+  "0F120, "0F121, "0F122, "0F123, "0F125, "0F197 }
+
+\intarray_const_from_clist:Nn \c__ttfdice_dotted_vi_intarray
+{ 0, "0F183, "0F184, "0F185, "0F186, "0F187, "0F188, 0 }
+\intarray_const_from_clist:Nn \c__ttfdice_dotted_invert_vi_intarray
+{ 0, "0F189, "0F18A, "0F18B, "0F18C, "0F18D, "0F18E, 0 }
+\intarray_const_from_clist:Nn \c__ttfdice_dotted_square_vi_intarray
+{ "0F193, "0F13F, "0F140, "0F141, "0F142, "0F143, "0F18F, "0F193 }
+
+\cs_new:Npn \__ttfdice_raise_char:N #1
+{ \raisebox { \g_ttfdice_dice_raise_dim } { #1 } }
+\cs_new:Npn \__ttfdice_fudge_raise_char:N #1
+{ \raisebox { \g_ttfdice_fate_glyph_raise_dim } { #1 } }
+\cs_new:Npn \__ttfdice_space_after_char:
+{ \hspace   { \g_ttfdice_dice_sep_dim } }
+\cs_new:Npn \__ttfdice_space_after_group:
+{ \hspace   { \g_ttfdice_dice_big_sep_dim } }
+
+\cs_new:Npn \__ttfdice_normal_dice_max_char:N #1
+{ \int_compare:nNnTF { #1 } { = } { 100 }
+  { \char"0F102 \char"0F100 }
+  { \symbol { \intarray_item:cn { c__ttfdice_d \int_to_roman:n { #1 } _intarray } { #1 + 1 } } } }
+
+\cs_new:Npn \__ttfdice_normal_dice_empty_char:N #1
+{ \int_compare:nNnTF { #1 } { = } { 100 }
+  { \char"0F194 \char"0F194 }
+  { \symbol { \intarray_item:cn { c__ttfdice_d \int_to_roman:n { #1 } _intarray } { #1 + 2 } } } }
+
+\cs_new:Npn \__ttfdice_normal_dice_to_char:NN #1#2
+{ \tl_set:Nn \l_tmpa_tl { c__ttfdice_d \int_to_roman:n { #1 } _intarray }
+  \seq_if_in:NnTF \c__ttfdice_empty_dice_mark_seq { #2 }
+  { \symbol { \intarray_item:cn { \l_tmpa_tl } { #1 + 2 } } }
+  { \int_compare:nF { 0 <= #2 <= #1 }
+    { \msg_error:nnnn { ttfdice } { invalid-dice-number } { #1 } { #2 } }
+    \symbol { \intarray_item:cn { \l_tmpa_tl } { #2 + 1 } } } }
+
+\cs_new:Npn \__ttfdice_add_normal_dice_to_output:nn #1#2
+{ \str_if_in:NnTF { #2 } { , }
+  { \tl_put_right:Nn \l__ttfdice_d_output_tl
+    { \clist_map_inline:nn { #2 }
+      { \__ttfdice_raise_char:N { \__ttfdice_normal_dice_to_char:NN { #1 } { ##1 } }
+        \__ttfdice_space_after_char: }
+      \__ttfdice_space_after_group: } }
+  { \tl_put_right:Nn \l__ttfdice_d_output_tl
+    { \__ttfdice_raise_char:N { \__ttfdice_normal_dice_to_char:NN { #1 } { #2 } }
+      \__ttfdice_space_after_group:
+      \__ttfdice_space_after_char: } } }
+
+\cs_new:Npn \__ttfdice_percentile_dice_to_char:N #1
+{ \seq_if_in:NnTF \c__ttfdice_empty_dice_mark_seq { #1 }
+  { \char"0F194 \char"0F194 }
+  { \int_set_eq:NN \l_tmpa_int {\int_div_truncate:nn { #1 } { 10 }}
+    \int_set_eq:NN \l_tmpb_int {\int_mod:nn { #1 } { 10 }}
+    \__ttfdice_normal_dice_to_char:NN {10} \l_tmpa_int
+    \__ttfdice_normal_dice_to_char:NN {10} \l_tmpb_int } }
+
+\cs_new:Npn \__ttfdice_add_percentile_dice:n #1
+{ \str_if_in:NnTF { #1 } { , }
+  { \tl_put_right:Nn \l__ttfdice_d_output_tl
+    { \clist_map_inline:nn { #1 }
+      { \__ttfdice_raise_char:N { \__ttfdice_percentile_dice_to_char:N { ##1 } }
+        \__ttfdice_space_after_char: }
+      \__ttfdice_space_after_group: } }
+  { \tl_put_right:Nn \l__ttfdice_d_output_tl
+    { \__ttfdice_raise_char:N { \__ttfdice_percentile_dice_to_char:N { #1 } }
+      \__ttfdice_space_after_group:
+      \__ttfdice_space_after_char: } } }
+
+\cs_new:Npn \__ttfdice_generic_num_to_char:NNN #1#2#3
+{ \seq_if_in:NnTF \c__ttfdice_empty_dice_mark_seq { #2 }
+  { \int_set:Nn \l_tmpa_int { \intarray_item:Nn { #3 } { #1 + 2 } } }
+  { \int_compare:nF { 0 <= #2 <= #1 }
+    { \msg_error:nnnn { ttfdice } { invalid-dice-number } { #1 } { #2 } }
+    \int_set:Nn \l_tmpa_int { \intarray_item:Nn { #3 } { #2 + 1 } } }
+  \int_compare:nNnT { \l_tmpa_int } { = } { 0 }
+  { \msg_error:nnn { ttfdice } { unsupported-number } { #2 } }
+  \symbol { \l_tmpa_int } }
+
+\cs_new:Npn \__ttfdice_generic_output:nnn #1#2#3
+{ \str_if_in:NnTF { #2 } { , }
+  { \tl_put_right:Nn \l__ttfdice_d_output_tl
+    { \clist_map_inline:nn { #2 }
+      { \__ttfdice_raise_char:N { \__ttfdice_generic_num_to_char:NNN { #1 } { ##1 } { #3 } }
+        \__ttfdice_space_after_char: }
+      \__ttfdice_space_after_group: } }
+  { \tl_put_right:Nn \l__ttfdice_d_output_tl
+    { \__ttfdice_raise_char:N { \__ttfdice_generic_num_to_char:NNN { #1 } { #2 } { #3 } }
+      \__ttfdice_space_after_group:
+      \__ttfdice_space_after_char: } } }
+
+\cs_new:Npn \__ttfdice_fudge_dice_to_char:NN #1#2
+{ \bool_if:NTF { #1 }
+  { \fontspec { Fate~Core~Glyphs } \__ttfdice_fudge_raise_char:N
+    { \seq_if_in:NnTF \c__ttfdice_empty_dice_mark_seq { #2 }
+      { 0 }
+      { \str_if_in:NnTF \c__ttfdice_fate_glyph_range_str { #2 }
+        { #2 }
+        { \msg_error:nnn { ttfdice } { invalid-fudge-result } { #2 } } } } }
+  { \__ttfdice_fudge_raise_char:N
+    { \seq_if_in:NnTF \c__ttfdice_empty_dice_mark_seq { #2 }
+      { \char"0F190 }
+      { \tl_case:NnF { #2 }
+        { { + } { \char"0F192 } { - } { \char"0F191 } { 0 } { \char"0F190 } }
+        { \msg_error:nnn { ttfdice } { invalid-fudge-result } { #2 } } } } } }
+
+\cs_new:Npn \__ttfdice_fudge_dice_output:NN #1#2
+{ \str_if_in:NnTF { #2 } { , }
+  { \tl_put_right:Nn \l__ttfdice_d_output_tl
+    { \clist_map_inline:nn { #2 }
+      { \__ttfdice_fudge_dice_to_char:NN { #1 } { ##1 }
+        \__ttfdice_space_after_char: }
+      \__ttfdice_space_after_group: } }
+  { \tl_put_right:Nn \l__ttfdice_d_output_tl
+    { \__ttfdice_fudge_dice_to_char:NN { #1 } { #2 }
+      \__ttfdice_space_after_group:
+      \__ttfdice_space_after_char: } } }
+
+\cs_new:Npn \__ttfdice_add_dotted_vi:n #1
+{ \__ttfdice_generic_output:nnn {6} { #1 } \c__ttfdice_dotted_vi_intarray }
+\cs_new:Npn \__ttfdice_add_dotted_vi_invert:n #1
+{ \__ttfdice_generic_output:nnn {6} { #1 } \c__ttfdice_dotted_invert_vi_intarray }
+\cs_new:Npn \__ttfdice_add_dotted_vi_square:n #1
+{ \__ttfdice_generic_output:nnn {6} { #1 } \c__ttfdice_dotted_square_vi_intarray }
+\cs_new:Npn \__ttfdice_add_fudge_dice:n #1
+{ \__ttfdice_fudge_dice_output:NN \c_true_bool { #1 } }
+\cs_new:Npn \__ttfdice_add_fudge_dice_square:n #1
+{ \__ttfdice_fudge_dice_output:NN \c_false_bool { #1 } }
+
+\keys_define:nn { ttfdice-d }
+{
+  2  .code:n = \__ttfdice_add_normal_dice_to_output:nn { 2 }  { #1 },
+  3  .code:n = \__ttfdice_add_normal_dice_to_output:nn { 3 }  { #1 },
+  4  .code:n = \__ttfdice_add_normal_dice_to_output:nn { 4 }  { #1 },
+  6  .code:n = \__ttfdice_add_normal_dice_to_output:nn { 6 }  { #1 },
+  8  .code:n = \__ttfdice_add_normal_dice_to_output:nn { 8 }  { #1 },
+  10 .code:n = \__ttfdice_add_normal_dice_to_output:nn { 10 } { #1 },
+  12 .code:n = \__ttfdice_add_normal_dice_to_output:nn { 12 } { #1 },
+  20 .code:n = \__ttfdice_add_normal_dice_to_output:nn { 20 } { #1 },
+
+  100 .code:n = \__ttfdice_add_percentile_dice:n { #1 },l
+
+  dotted-6 .code:n = \__ttfdice_add_dotted_vi:n { #1 },
+  dt6 .code:n = \__ttfdice_add_dotted_vi:n { #1 },
+  dotted-6-invert .code:n = \__ttfdice_add_dotted_vi_invert:n { #1 },
+  dt6i .code:n = \__ttfdice_add_dotted_vi_invert:n { #1 },
+  dotted-6-square .code:n = \__ttfdice_add_dotted_vi_square:n { #1 },
+  dt6s .code:n = \__ttfdice_add_dotted_vi_square:n { #1 },
+
+  fudge-dice        .code:n = \__ttfdice_add_fudge_dice:n { #1 },
+  fd                .code:n = \__ttfdice_add_fudge_dice:n { #1 },
+  fudge-dice-square .code:n = \__ttfdice_add_fudge_dice_square:n { #1 },
+  fds               .code:n = \__ttfdice_add_fudge_dice_square:n { #1 },
+
+  raise       .dim_set:N = \g_ttfdice_dice_raise_dim,
+  fate-glyph-raise .dim_set:N = \g_ttfdice_fate_glyph_raise_dim,
+  sep         .dim_set:N = \g_ttfdice_dice_raise_dim,
+  big-sep     .dim_set:N = \g_ttfdice_dice_big_sep_dim,
+}
+
+\NewDocumentCommand { \D } { s o }
+{
+  \group_begin:
+  \fontspec { dicefont }
+  \str_if_in:NnTF { #2 } { = }
+  {
+    \bool_if:NT { #1 } { \msg_warning:nn { ttfdice } { api-reserved } }
+    \keys_set:nn { ttfdice-d } { #2 }
+    \l__ttfdice_d_output_tl
+    \hspace { -\g_ttfdice_dice_big_sep_dim }
+    \hspace { -\g_ttfdice_dice_sep_dim }
+  }
+  {
+    % Only for normal dice,
+    % since dotted ones don't have a empty glyph,
+    % and fudge dice's empty glyph has different meaning.
+    \bool_if:NTF { #1 }
+    { \tl_set:Nn \l_tmpa_tl { empty } }
+    { \tl_set:Nn \l_tmpa_tl { max } }
+    \str_if_in:NnTF { #2 } { , }
+    {
+      \clist_map_inline:nn { #2 }
+      {
+        \seq_if_in:NnF \c__ttfdice_supported_dice_seq { ##1 }
+        { \msg_error:nnn { ttfdice } { unsupported-dice } { ##1 } }
+        \use:c { __ttfdice_normal_dice_ \l_tmpa_tl _char:N } { ##1 }
+        \__ttfdice_space_after_char:
+      }
+      \hspace { -\g_ttfdice_dice_sep_dim }
+    }
+    {
+      \seq_if_in:NnF \c__ttfdice_supported_dice_seq { #2 }
+      { \msg_error:nnn { ttfdice } { unsupported-dice } { #2 } }
+      \use:c { __ttfdice_normal_dice_ \l_tmpa_tl _char:N } { #2 }
+    }
+  }
+  \group_end:
+}
+
+\NewDocumentCommand { \FD } { s o }
+{
+  \group_begin:
+  \bool_if:NTF { #1 }
+  { \__ttfdice_add_fudge_dice_square:n { #2 }
+    \fontspec { dicefont }
+    \l__ttfdice_d_output_tl }
+  { \__ttfdice_add_fudge_dice:n { #2 }
+    \l__ttfdice_d_output_tl }
+  \hspace { -\g_ttfdice_dice_big_sep_dim }
+  \hspace { -\g_ttfdice_dice_sep_dim }
+  \group_end:
+}

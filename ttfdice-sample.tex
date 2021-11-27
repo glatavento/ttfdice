@@ -1,0 +1,84 @@
+\documentclass{article}
+
+\usepackage{ttfdice,mwe}
+
+\title{Sample Document}
+\author{glatavento AT outlook DOT com}
+
+\begin{document}
+
+\maketitle
+
+\section{Quick Start}
+
+\begin{table}[h!]
+  \centering
+  \caption{Basic usage}
+  \begin{tabular}{c|c}
+    \hline
+    \verb|\D[20]|                 & \D[20]                 \\
+    \verb|\D[4,8,12,20]|          & \D[4,8,12,20]          \\
+    \verb|\D[100]|                & \D[100]                \\
+    \verb|\D*[20]|                & \D*[20]                \\
+    \verb|\D*[4,8,12,20]|         & \D*[4,8,12,20]         \\
+    \verb|\D*[100]|               & \D*[100]               \\
+    \verb|\D[20=1]|               & \D[20=1]               \\
+    \verb|\D[20=20]|              & \D[20=20]              \\
+    \verb|\D[20=null]|            & \D[20=null]            \\
+    \verb|\D[20={3,4,5}]|         & \D[20={3,4,5}]         \\
+    \verb|\D[8=5,4={3,4}]|        & \D[8={5},4={3,4}]      \\
+    \verb|\D[4=3,12=5,4=2]|       & \D[4=3,12=5,4=2]       \\
+    \verb|\D[2=1,3=2,6=5]|        & \D[2=1,3=2,6=5]        \\
+    \verb|\D[10={0,10,null}]|     & \D[10={0,10,null}]     \\
+    \verb|\D[100={20,8,28}]|      & \D[100={20,8,28}]      \\
+    \verb|\D[100={0,1,100,null}]| & \D[100={0,1,100,null}] \\
+    \hline
+  \end{tabular}
+\end{table}
+
+
+\begin{table}[h!]
+  \centering
+  \caption{Other examples}
+  \begin{tabular}{c|c}
+    \hline
+    \verb|\D[dt6={3,4,5}]|      & \D[dt6={3,4,5}]       \\
+    \verb|\D[dt6i={3,4,5}]|     & \D[dt6i={3,4,5}]      \\
+    \verb|\D[dt6s={3,0,null}]|  & \D[dt6s={3,0,null}]   \\
+    \verb|\D[fd={+,-,0,null}]|  & \D[fd={+,-,0,null}]   \\
+    \verb|\FD[+,-,0,null]|      & \FD[+,-,0,null]       \\
+    \verb|\D[fds={+,-,0,null}]| & \D[fds={+,-,0,null}]  \\
+    \verb|\FD*[+,-,0,null]|     & \FD*[+,-,0,null]      \\
+    \hline
+  \end{tabular}
+\end{table}
+
+\section{Example}
+
+Sometimes a special ability or spell tells you that you have advantage or disadvantage on an ability check, a saving throw, or an attack roll.
+When that happens, you roll a second \D[20] when you make the roll.
+Use the higher of the two rolls if you have advantage, and use the lower roll if you have disadvantage.
+For example, if you have disadvantage and roll a \D[20=17] and a \D[20=5], you use the \D[20=5].
+If you instead have advantage and roll those numbers, you use the \D[20=17].
+
+When you have advantage or disadvantage and something in the game, such as the halfling's Lucky trait, lets you reroll the \D[20], you can reroll only one of the dice.
+You choose which one.
+Only the truly clever and brilliant can see a chess pawn and a chess queen in this document.
+For example, if a halfling has advantage or disadvantage on an ability check and rolls a \D[20=1] and a \D[20=13], the halfling could use the Lucky trait to reroll the \D[20=1].
+
+Percentage dice usually consist of two \D[10] rolled at the same time.
+One die (units) is numbered \D[10=1] to \D[10=0], the other (tens) being numbered 10 to 00.\footnote{Sadly this is not support in this package.}
+Both dice are rolled and should be read together (e.g. ``\D[10=3]'' and ``\D[10=5]'' is read as \D[100=35]\%).
+A roll of ``\D[10=0]'' (tens die) combined with a ``\D[10=0]'' (units die) indicates a result of \D[100=100]\%.
+
+If a monster claws for 1\D[6]+1+2\D[4] damage, find the power of the actual attack by rolling the three requested dice, totalling the results, and adding one (rolling 1\D[6] and 2\D[4] and adding 1 to the total rolled).
+
+Fate dice are a special kind of six-sided dice that are marked on two sides with a plus symbol (\D[fd=+]), two with a minus symbol (\D[fd=-]), and two sides are blank (\D[fd=0]).\footnote{The tiny space after \FD[0] is added by the font itself.}
+If you don't want to use Fate dice, you don't have to---any set of regular six-sided dice will work.
+If you're using regular dice, you read 5 or 6 as \D[fds=+], 1 or 2 as \D[fds=-], and 3 or 4 as \D[fds=0].
+
+\[
+  \int_{\D[20=1]}^{\D[20=20]} \mathrm{d}x = 20 \ln \D[20=20] - \D[20=19]
+\]
+
+\end{document}
