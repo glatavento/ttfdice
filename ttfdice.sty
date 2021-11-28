@@ -13,7 +13,7 @@
 \dim_new:N \g_ttfdice_dice_sep_dim
 \dim_new:N \g_ttfdice_dice_big_sep_dim
 
-% true: 1 \D 20 = 1D20, 1 \D* 20 = 1d20
+% true:  1 \D 20 = 1D20, 1 \D* 20 = 1d20
 % false: 1 \D 20 = 1d20, 1 \D* 20 = 1D20
 \bool_new:N \g_ttfdice_perfer_upper_bool
 
@@ -253,10 +253,9 @@
     % | f | t | D |
     % | f | f | d |
     \bool_xor:nnTF { #1 } { \g_ttfdice_perfer_upper_bool }
-    { % This might be comfusing at first,
-      % but it's useful in roll dice exressions
-      % like "$1\D10+1\D4+1$"
-      \ensuremath{ \mathrm { D } } }
+    % This definition might be comfusing at first,
+    % but it's useful in roll dice exressions like "$1\D10+1\D4+1$"
+    { \ensuremath{ \mathrm { D } } }
     { \ensuremath{ \mathrm { d } } }
   }
   {
