@@ -1,6 +1,7 @@
 # TTFDICE
 
-![Usage](https://user-images.githubusercontent.com/76601050/143684399-cb0777a4-09c3-43ce-976e-4c9f6d47f980.png)
+![Usage](https://user-images.githubusercontent.com/76601050/143728601-4fdd547e-262f-47ec-9723-76bbebe7d40e.png)
+
 
 ## Note
 
