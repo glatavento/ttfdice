@@ -8,8 +8,8 @@ This package is build on [dicefont](https://github.com/fponticelli/dicefont) and
 
 ## Todo
 
-- [] Refine tests
-- [] Write document with docstrip
+- [ ] Refine tests
+- [ ] Write document with docstrip
 
 ## Known Issue
 
