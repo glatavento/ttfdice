@@ -1,6 +1,7 @@
 \ProvidesExplPackage {ttfdice} {2021/11/27} {0.1.0}
 { A tiny package for displaying TRPG dice. }
 
+\RequirePackage { l3keys2e }
 \RequirePackage { xparse }
 \RequirePackage { fontspec }
 
@@ -37,6 +38,17 @@
 
 \seq_const_from_clist:Nn \c__ttfdice_supported_dice_seq { 2, 3, 4, 6, 8, 10, 12, 20, 100 }
 \seq_const_from_clist:Nn \c__ttfdice_empty_dice_mark_seq { empty, null, blank }
+
+\keys_define:nn { ttfdice-module }
+{
+  raise            .dim_gset:N = \g_ttfdice_dice_raise_dim,
+  fate-glyph-raise .dim_gset:N = \g_ttfdice_fate_glyph_raise_dim,
+  fdraise .dim_gset:N = \g_ttfdice_fate_glyph_raise_dim,
+  sep     .dim_gset:N = \g_ttfdice_dice_raise_dim,
+  big-sep .dim_gset:N = \g_ttfdice_dice_big_sep_dim,
+}
+
+\ProcessKeysOptions { ttfdice-module }
 
 % First item is the char point of zero dice
 % (for dices other than d10, it's empty).
@@ -160,7 +172,7 @@
       { \str_if_in:NnTF \c__ttfdice_fate_glyph_range_str { #2 }
         { #2 }
         { \msg_error:nnn { ttfdice } { invalid-fudge-result } { #2 } } } } }
-  { \__ttfdice_fudge_raise_char:N
+  { \__ttfdice_raise_char:N
     { \seq_if_in:NnTF \c__ttfdice_empty_dice_mark_seq { #2 }
       { \char"0F190 }
       { \tl_case:NnF { #2 }
@@ -215,10 +227,11 @@
   fudge-dice-square .code:n = \__ttfdice_add_fudge_dice_square:n { #1 },
   fds               .code:n = \__ttfdice_add_fudge_dice_square:n { #1 },
 
-  raise       .dim_set:N = \g_ttfdice_dice_raise_dim,
+  raise            .dim_set:N = \g_ttfdice_dice_raise_dim,
   fate-glyph-raise .dim_set:N = \g_ttfdice_fate_glyph_raise_dim,
-  sep         .dim_set:N = \g_ttfdice_dice_raise_dim,
-  big-sep     .dim_set:N = \g_ttfdice_dice_big_sep_dim,
+  fd-raise .dim_set:N = \g_ttfdice_fate_glyph_raise_dim,
+  sep     .dim_set:N = \g_ttfdice_dice_raise_dim,
+  big-sep .dim_set:N = \g_ttfdice_dice_big_sep_dim,
 }
 
 \NewDocumentCommand { \D } { s o }
