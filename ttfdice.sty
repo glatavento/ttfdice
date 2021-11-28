@@ -1,4 +1,4 @@
-\ProvidesExplPackage {ttfdice} {2021/11/27} {0.1.1}
+\ProvidesExplPackage {ttfdice} {2021/11/28} {0.2.0}
 { A tiny package for displaying TRPG dice. }
 
 \RequirePackage { l3keys2e }
@@ -13,10 +13,16 @@
 \dim_new:N \g_ttfdice_dice_sep_dim
 \dim_new:N \g_ttfdice_dice_big_sep_dim
 
-\dim_set:Nn \g_ttfdice_dice_raise_dim       { 0pt }
-\dim_set:Nn \g_ttfdice_fate_glyph_raise_dim { 0pt }
-\dim_set:Nn \g_ttfdice_dice_sep_dim         { 1pt }
-\dim_set:Nn \g_ttfdice_dice_big_sep_dim     { 2pt }
+% true: 1 \D 20 = 1D20, 1 \D* 20 = 1d20
+% false: 1 \D 20 = 1d20, 1 \D* 20 = 1D20
+\bool_new:N \g_ttfdice_perfer_upper_bool
+
+\dim_gset:Nn \g_ttfdice_dice_raise_dim       { 0pt }
+\dim_gset:Nn \g_ttfdice_fate_glyph_raise_dim { 0pt }
+\dim_gset:Nn \g_ttfdice_dice_sep_dim         { 1pt }
+\dim_gset:Nn \g_ttfdice_dice_big_sep_dim     { 2pt }
+
+\bool_gset_eq:NN \g_ttfdice_perfer_upper_bool \c_true_bool
 
 \msg_new:nnn { ttfdice } { invalid-dice-number }
 { ‘#2’~ is~ not~ a~ valid~ d#1~ number. }
@@ -46,6 +52,9 @@
   fdraise .dim_gset:N = \g_ttfdice_fate_glyph_raise_dim,
   sep     .dim_gset:N = \g_ttfdice_dice_raise_dim,
   big-sep .dim_gset:N = \g_ttfdice_dice_big_sep_dim,
+  caps .choice:,
+  caps / upper .code:n = \bool_gset_eq:NN \g_ttfdice_perfer_upper_bool \c_true_bool,
+  caps / lower .code:n = \bool_gset_eq:NN \g_ttfdice_perfer_upper_bool \c_false_bool,
 }
 
 \ProcessKeysOptions { ttfdice-module }
@@ -237,37 +246,52 @@
 \NewDocumentCommand { \D } { s o }
 {
   \group_begin:
-  \fontspec { dicefont }
-  \str_if_in:NnTF { #2 } { = }
+  \tl_if_novalue:nTF { #2 }
   {
-    \bool_if:NT { #1 } { \msg_warning:nn { ttfdice } { api-reserved } }
-    \keys_set:nn { ttfdice-d } { #2 }
-    \l__ttfdice_d_output_tl
-    \hspace { -\g_ttfdice_dice_big_sep_dim }
-    \hspace { -\g_ttfdice_dice_sep_dim }
+    % | t | f | D |
+    % | t | t | d |
+    % | f | t | D |
+    % | f | f | d |
+    \bool_xor:nnTF { #1 } { \g_ttfdice_perfer_upper_bool }
+    { % This might be comfusing at first,
+      % but it's useful in roll dice exressions
+      % like "$1\D10+1\D4+1$"
+      \ensuremath{ \mathrm { D } } }
+    { \ensuremath{ \mathrm { d } } }
   }
   {
-    % Only for normal dice,
-    % since dotted ones don't have a empty glyph,
-    % and fudge dice's empty glyph has different meaning.
-    \bool_if:NTF { #1 }
-    { \tl_set:Nn \l_tmpa_tl { empty } }
-    { \tl_set:Nn \l_tmpa_tl { max } }
-    \str_if_in:NnTF { #2 } { , }
+    \fontspec { dicefont }
+    \str_if_in:NnTF { #2 } { = }
     {
-      \clist_map_inline:nn { #2 }
-      {
-        \seq_if_in:NnF \c__ttfdice_supported_dice_seq { ##1 }
-        { \msg_error:nnn { ttfdice } { unsupported-dice } { ##1 } }
-        \use:c { __ttfdice_normal_dice_ \l_tmpa_tl _char:N } { ##1 }
-        \__ttfdice_space_after_char:
-      }
+      \bool_if:NT { #1 } { \msg_warning:nn { ttfdice } { api-reserved } }
+      \keys_set:nn { ttfdice-d } { #2 }
+      \l__ttfdice_d_output_tl
+      \hspace { -\g_ttfdice_dice_big_sep_dim }
       \hspace { -\g_ttfdice_dice_sep_dim }
     }
     {
-      \seq_if_in:NnF \c__ttfdice_supported_dice_seq { #2 }
-      { \msg_error:nnn { ttfdice } { unsupported-dice } { #2 } }
-      \use:c { __ttfdice_normal_dice_ \l_tmpa_tl _char:N } { #2 }
+      % Only for normal dice,
+      % since dotted ones don't have a empty glyph,
+      % and fudge dice's empty glyph has different meaning.
+      \bool_if:NTF { #1 }
+      { \tl_set:Nn \l_tmpa_tl { empty } }
+      { \tl_set:Nn \l_tmpa_tl { max } }
+      \str_if_in:NnTF { #2 } { , }
+      {
+        \clist_map_inline:nn { #2 }
+        {
+          \seq_if_in:NnF \c__ttfdice_supported_dice_seq { ##1 }
+          { \msg_error:nnn { ttfdice } { unsupported-dice } { ##1 } }
+          \use:c { __ttfdice_normal_dice_ \l_tmpa_tl _char:N } { ##1 }
+          \__ttfdice_space_after_char:
+        }
+        \hspace { -\g_ttfdice_dice_sep_dim }
+      }
+      {
+        \seq_if_in:NnF \c__ttfdice_supported_dice_seq { #2 }
+        { \msg_error:nnn { ttfdice } { unsupported-dice } { #2 } }
+        \use:c { __ttfdice_normal_dice_ \l_tmpa_tl _char:N } { #2 }
+      }
     }
   }
   \group_end:

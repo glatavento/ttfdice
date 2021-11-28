@@ -1,6 +1,6 @@
 \documentclass{article}
 
-\usepackage{mwe}
+\usepackage{mwe,mathtools}
 \usepackage{../ttfdice}
 
 \title{Sample Document}
@@ -79,7 +79,7 @@ If you don't want to use Fate dice, you don't have to---any set of regular six-s
 If you're using regular dice, you read 5 or 6 as \D[fds=+], 1 or 2 as \D[fds=-], and 3 or 4 as \D[fds=0].
 
 \[
-  \int_{\D[20=1]}^{\D[20=20]} \mathrm{d}x = 20 \ln \D[20=20] - \D[20=19]
+  \int_{\D[20=1]}^{\D[20=20]} \ln \D[20=null] \D* \text{\D*[20]} = 20 \ln \D[20=20] - \D[20=19]
 \]
 
 \end{document}
