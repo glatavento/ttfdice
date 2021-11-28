@@ -13,7 +13,7 @@ This package is build on [dicefont](https://github.com/fponticelli/dicefont) and
 
 ## Known Issue
 
-- \D[X] and \D*[X] won't display in math mode. Please wrap them in \text{}.
+- `\D[X]` and `\D*[X]` won't display in math mode. Please wrap them in \text{}.
 
 ## License
 
