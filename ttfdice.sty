@@ -60,7 +60,7 @@
 \ProcessKeysOptions { ttfdice-module }
 
 % First item is the char point of zero dice
-% (for dices other than d10, it's empty).
+% (for dice other than d10, it's empty).
 % Last item is the char point of empty dice.
 % DX=Y's index = Y + 1.
 \intarray_const_from_clist:Nn \c__ttfdice_dii_intarray
@@ -254,7 +254,7 @@
     % | f | f | d |
     \bool_xor:nnTF { #1 } { \g_ttfdice_perfer_upper_bool }
     % This definition might be comfusing at first,
-    % but it's useful in roll dice exressions like "$1\D10+1\D4+1$"
+    % but it's useful in dice rolling exressions like "$1\D10+1\D4+1$"
     { \ensuremath{ \mathrm { D } } }
     { \ensuremath{ \mathrm { d } } }
   }
