@@ -1,4 +1,8 @@
-# TTFDICE
+<h1 align="center"> TᴛғDɪᴄᴇ </h1>
+
+<p align=center>A tiny package for displaying TRPG dice.</p>
+
+## Usage
 
 ![Usage](https://user-images.githubusercontent.com/76601050/143728601-4fdd547e-262f-47ec-9723-76bbebe7d40e.png)
 
