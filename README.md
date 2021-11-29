@@ -1,4 +1,4 @@
-<h1 align="center"> TᴛғDɪᴄᴇ </h1>
+<h1 align="center"> TᴛꜰDɪᴄᴇ </h1>
 
 <p align=center>A tiny package for displaying TRPG dice.</p>
 
